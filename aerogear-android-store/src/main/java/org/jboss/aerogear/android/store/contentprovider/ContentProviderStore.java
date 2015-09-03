@@ -20,6 +20,7 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.net.Uri;
 import android.util.Log;
+import android.util.Pair;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -45,7 +46,7 @@ public abstract class ContentProviderStore extends ContentProvider {
     private static final String TAG = ContentProvider.class.getSimpleName();
     private static final int DEFAULT_TIMEOUT_SECONDS = 5; //5 seconds.
 
-    private final Map<Uri, Store<?>> storeMap = new HashMap<Uri, Store<?>>();
+    private final Map<Uri, Pair<Class<?>, Store<?>>> storeMap = new HashMap<Uri, Pair<Class<?>, Store<?>>>();
 
     /**
      * SQLStores are opened asynchronously. The latches used to require stores
@@ -83,9 +84,9 @@ public abstract class ContentProviderStore extends ContentProvider {
      * StoreNames (must match the names in DataManager) to URI's the Store can 
      * handle.
      * 
-     * @return a map of storeNames to handled uris;
+     * @return a map of storeNames to handled uri/class pairs;
      */
-    abstract Map<String, List<Uri>> buildStoreMap();
+    abstract Map<String, List<Pair<Uri, Class<?>>>> buildStoreMap();
 
     
     /**
@@ -100,7 +101,7 @@ public abstract class ContentProviderStore extends ContentProvider {
 
     @Override
     public boolean onCreate() {
-        Map<String, List<Uri>> uriStores = buildStoreMap();
+        Map<String, List<Pair<Uri, Class<?>>>> uriStores = buildStoreMap();
         for (String storeName : uriStores.keySet()) {
             addStore(storeName, uriStores.get(storeName));
         }
@@ -117,9 +118,14 @@ public abstract class ContentProviderStore extends ContentProvider {
             ReadFilter filter = makeFilter(selection, selectionArgs);
             results.addAll(store.readWithFilter(filter));
         }
-            
-        //TODO: Future me figure out how to turn objects into a cursor using getValues
-            
+        
+        List<ContentValues> valuesList = new ArrayList<ContentValues>(results.size());
+        for (Object result : results) {
+            valuesList.add(getValues(uri, result));
+        }
+        
+        return new StoreCursor(valuesList);
+        
     }
 
     /**
@@ -196,31 +202,32 @@ public abstract class ContentProviderStore extends ContentProvider {
 
     /**
      * @param storeName this is the name of the store in the DataManager.
-     * @param uris a collection of Uris the Store will handle.
+     * @param uriClassPairs a collection of Uris the Store will handle.
+     * @param storeClass the class the store represents
      *
      * @throws IllegalArgumentException if storeName is not a created store.
      */
-    private final void addStore(String storeName, List<Uri> uris) {
-        Store store = DataManager.getStore(storeName);
+    private void addStore(String storeName, List<Pair<Uri, Class<?>>> uriClassPairs) {
+        Store<?> store = DataManager.getStore(storeName);
 
         if (store == null) {
             throw new IllegalArgumentException(storeName + " is not a store in DataManager");
         }
 
         if (store instanceof SQLStore) {
-            ((SQLStore) store).open(new CountdownLatchCallback(addLatch(uris)));
+            ((SQLStore) store).open(new CountdownLatchCallback(addLatch(uriClassPairs)));
         }
 
-        for (Uri uri : uris) {
-            storeMap.put(uri, store);
+        for (Pair<Uri, Class<?>> uriCLassPair : uriClassPairs) {
+            storeMap.put(uriCLassPair.first, (Pair<Class<?>, Store<?>>) Pair.create(uriCLassPair.second, store));
         }
 
     }
 
-    private CountDownLatch addLatch(List<Uri> uris) {
+    private CountDownLatch addLatch(List<Pair<Uri, Class<?>>> uris) {
         CountDownLatch latch = new CountDownLatch(1);
-        for (Uri uri : uris) {
-            latchMap.put(uri, latch);
+        for ( Pair<Uri, Class<?>> uri : uris) {
+            latchMap.put(uri.first, latch);
         }
         return latch;
     }
@@ -258,8 +265,14 @@ public abstract class ContentProviderStore extends ContentProvider {
     }
 
     private Store getStore(Uri uri) {
-        Store<?> store = storeMap.get(uri);
+        Store<?> store = storeMap.get(uri).second;
         ensureOpen(uri, store);
+        return store;
+    }
+    
+    protected Pair<Class<?>, Store<?>> getStoreClass(Uri uri) {
+        Pair<Class<?>, Store<?>> store = storeMap.get(uri);
+        ensureOpen(uri, store.second);
         return store;
     }
 

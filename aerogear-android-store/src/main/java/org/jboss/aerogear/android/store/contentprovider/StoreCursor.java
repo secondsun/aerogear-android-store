@@ -15,6 +15,7 @@
  */
 package org.jboss.aerogear.android.store.contentprovider;
 
+import android.content.ContentValues;
 import android.database.AbstractCursor;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,16 +23,24 @@ import java.util.List;
 /**
  * A Cursor which wraps contentvalues;
  */
-public class StoreCursor extends AbstractCursor{
+public class StoreCursor extends AbstractCursor {
 
-    private static final String[] COLUMNS = {"DATA"};
-    
-    private final List objectList = new ArrayList();
+    private final List<ContentValues> objectList = new ArrayList<ContentValues>();
+    private final String[] columnNames;
 
-    public StoreCursor(List data) {
+    public StoreCursor(List<ContentValues> data) {
         objectList.addAll(data);
+        ContentValues firstObject = objectList.get(0);
+
+        if (firstObject != null) {
+            int length = firstObject.keySet().size();
+            columnNames = firstObject.keySet().toArray(new String[length]);
+        } else {
+            columnNames = new String[0];
+        }
+
     }
-    
+
     @Override
     public int getCount() {
         return objectList.size();
@@ -39,42 +48,42 @@ public class StoreCursor extends AbstractCursor{
 
     @Override
     public String[] getColumnNames() {
-        return COLUMNS;
+        return columnNames;
     }
 
     @Override
     public String getString(int column) {
-        return "";
+        return objectList.get(getPosition()).getAsString(columnNames[column]);
     }
 
     @Override
     public short getShort(int column) {
-        return 0;
+        return objectList.get(getPosition()).getAsShort(columnNames[column]);
     }
 
     @Override
     public int getInt(int column) {
-        return 0;
+        return objectList.get(getPosition()).getAsInteger(columnNames[column]);
     }
 
     @Override
     public long getLong(int column) {
-        return 0;
+        return objectList.get(getPosition()).getAsLong(columnNames[column]);
     }
 
     @Override
     public float getFloat(int column) {
-        return 0;
+        return objectList.get(getPosition()).getAsFloat(columnNames[column]);
     }
 
     @Override
     public double getDouble(int column) {
-        return 0;
+        return objectList.get(getPosition()).getAsDouble(columnNames[column]);
     }
 
     @Override
     public boolean isNull(int column) {
-        return column != 0;
+        return objectList.get(getPosition()).get(columnNames[column]) == null;
     }
-    
+
 }
