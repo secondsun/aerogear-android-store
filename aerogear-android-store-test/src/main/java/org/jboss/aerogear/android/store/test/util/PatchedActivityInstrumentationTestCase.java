@@ -36,6 +36,7 @@ public abstract class PatchedActivityInstrumentationTestCase {
 
     public PatchedActivityInstrumentationTestCase(Class<? extends Activity> klass) {
         rule = new ActivityTestRule(klass, false, false);
+        
     }
         
     @Before
