@@ -65,7 +65,7 @@ public abstract class ContentProviderStore extends ContentProvider {
      * @return the deserialized object
      *
      */
-    abstract Object getObject(Uri uri, ContentValues values);
+    protected abstract Object getObject(Uri uri, ContentValues values);
 
     /**
      * The implementation is responsible for turning an Object into content
@@ -75,7 +75,7 @@ public abstract class ContentProviderStore extends ContentProvider {
      * @param value the object to turn into content values
      * @return a valueized version of the object
      */
-    abstract ContentValues getValues(Uri uri, Object value);
+    protected abstract ContentValues getValues(Uri uri, Object value);
 
     
     /**
@@ -86,7 +86,7 @@ public abstract class ContentProviderStore extends ContentProvider {
      * 
      * @return a map of storeNames to handled uri/class pairs;
      */
-    abstract Map<String, List<Pair<Uri, Class<?>>>> buildStoreMap();
+    protected abstract Map<String, List<Pair<Uri, Class<?>>>> buildStoreMap();
 
     
     /**
@@ -97,7 +97,7 @@ public abstract class ContentProviderStore extends ContentProvider {
      * @param values the values to set on the object
      * @param value the object to mutate
      */
-    abstract void merge(Uri uri, ContentValues values, Object value);
+    protected abstract void merge(Uri uri, ContentValues values, Object value);
 
     @Override
     public boolean onCreate() {

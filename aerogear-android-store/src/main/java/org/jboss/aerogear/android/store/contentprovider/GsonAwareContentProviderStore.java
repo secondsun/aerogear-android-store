@@ -52,7 +52,7 @@ public abstract class GsonAwareContentProviderStore extends ContentProviderStore
     }
 
     @Override
-    final Object getObject(Uri uri, ContentValues values) {
+    public final Object getObject(Uri uri, ContentValues values) {
         Gson gson = uriGsonMap.get(uri);
         Pair<Class<?>, Store<?>> classStore = getStoreClass(uri);
         JsonElement josinifiedValues = buildJsonObject(values);
@@ -60,7 +60,7 @@ public abstract class GsonAwareContentProviderStore extends ContentProviderStore
     }
 
     @Override
-    ContentValues getValues(Uri uri, Object value) {
+    protected final ContentValues getValues(Uri uri, Object value) {
         Gson gson = uriGsonMap.get(uri);
         ContentValues asValues = new ContentValues();
         JsonElement jsonSerialized = gson.toJsonTree(value);
@@ -69,7 +69,7 @@ public abstract class GsonAwareContentProviderStore extends ContentProviderStore
     }
 
     @Override
-    void merge(Uri uri, ContentValues values, Object value) {
+    protected final void merge(Uri uri, ContentValues values, Object value) {
         for (String key : values.keySet()) {
             try {
                 setValue(value, key, values.get(key));
@@ -92,7 +92,7 @@ public abstract class GsonAwareContentProviderStore extends ContentProviderStore
      *
      * @return a map of URI objects and their GSonHandler;
      */
-    abstract Map<Uri, Gson> buildGsonMap();
+    protected abstract Map<Uri, Gson> buildGsonMap();
 
     private JsonElement buildJsonObject(ContentValues values) {
         JsonObject toReturn = new JsonObject();
