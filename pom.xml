@@ -88,6 +88,7 @@
             <groupId>android</groupId>
             <artifactId>android</artifactId>
             <scope>provided</scope>
+            <version>5.1.1_r2</version>
         </dependency>
    </dependencies>
 

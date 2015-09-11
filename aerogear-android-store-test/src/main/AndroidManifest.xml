@@ -23,6 +23,12 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+        <provider
+            android:name="org.jboss.aerogear.android.store.test.contentprovider.DataContentProvider"
+            android:authorities="org.jboss.aerogear.android.store.test"
+            android:exported="false"
+            android:syncable="true" />
+        
     </application>
 
 </manifest>

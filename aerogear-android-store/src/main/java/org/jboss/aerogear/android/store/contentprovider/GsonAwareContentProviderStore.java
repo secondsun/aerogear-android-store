@@ -122,7 +122,7 @@ public abstract class GsonAwareContentProviderStore extends ContentProviderStore
         
     }
 
-    private void buildValues(JsonElement serialized, String path, ContentValues values) {
+    public static void buildValues(JsonElement serialized, String path, ContentValues values) {
         
         
         if (serialized.isJsonObject()) {
